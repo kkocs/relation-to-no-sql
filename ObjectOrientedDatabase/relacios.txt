@@ -1,0 +1,164 @@
+-- Creating Database.
+
+CREATE DATABASE for_no_sql;
+
+-- Creating Tables.
+
+CREATE TABLE szemelyek (
+	szemelyi_szam VARCHAR(20), 
+	szuletesi_datum Date, kor INT, 
+	nev VARCHAR(20),
+	PRIMARY KEY (szemelyi_szam)
+);
+
+INSERT INTO szemelyek (szemelyi_szam, szuletesi_datum, kor, nev) 
+VALUES 
+('1951103055105', '1995-11-03', '22', 'Krisztián'), 
+('1941126055105', '1994-11-26', '22', 'Paul');
+
+INSERT INTO szemelyek (szemelyi_szam, szuletesi_datum, kor, nev) 
+VALUES 
+('1951103055106', '1995-01-03', '22', 'Mark'), 
+('1941126055107', '1996-02-14', '21', 'John'),
+('1941126055108', '1993-03-22', '24', 'Darius'),
+('1941126055109', '1994-04-04', '23', 'Michael'),
+('1941126055110', '1994-05-09', '23', 'Daniel'),
+('1941126055111', '1993-06-13', '24', 'Edgard'),
+('1941126055112', '1995-07-26', '22', 'Jeremy'),
+('1941126055113', '1994-08-17', '23', 'Stephen'),
+('1941126055114', '1996-09-22', '21', 'Roger'),
+('1941126055115', '1994-10-07', '23', 'Valter'),
+('1941126055116', '1994-11-01', '23', 'Louise'),
+('1941126055117', '1993-12-25', '23', 'Peter'),
+('1941126055118', '1996-01-18', '21', 'George');
+
+
+CREATE TABLE csapatok (
+	csapat_kod INT NOT NULL AUTO_INCREMENT,
+	csapat_nev VARCHAR(50), 
+	PRIMARY KEY (csapat_kod)
+);
+
+INSERT INTO csapatok (csapat_kod, csapat_nev) 
+VALUES
+('', 'CLG'),
+('', 'SKT'),
+('', 'TSM')
+
+CREATE TABLE managere (
+	szemelyi_szam VARCHAR(20), 
+	csapat_kod INT NOT NULL,
+
+	FOREIGN KEY (csapat_kod)
+      	REFERENCES csapatok(csapat_kod),
+
+	FOREIGN KEY (szemelyi_szam)
+      	REFERENCES szemelyek(szemelyi_szam),
+
+	PRIMARY KEY(csapat_kod, szemelyi_szam)
+);
+
+INSERT INTO managere (szemelyi_szam , csapat_kod) VALUES
+( '1941126055114', '1'),
+( '1941126055116', '2'),
+( '1941126055110', '3');
+
+CREATE TABLE helyszinek(
+	helyszin_kod INT NOT NULL AUTO_INCREMENT,
+	helyszin_nev VARCHAR(50),
+	PRIMARY KEY (helyszin_kod)
+);
+
+INSERT INTO helyszinek (helyszin_kod , helyszin_nev)
+VALUES 
+('', 'New York'),
+('', 'Washington'),
+('', 'Las Vegas');
+
+CREATE TABLE versenyzik (
+	szemelyi_szam VARCHAR(20), 
+	csapat_kod INT NOT NULL,
+
+	FOREIGN KEY (csapat_kod)
+      	REFERENCES csapatok(csapat_kod),
+
+	FOREIGN KEY (szemelyi_szam)
+      	REFERENCES szemelyek(szemelyi_szam),
+
+	PRIMARY KEY(csapat_kod, szemelyi_szam)
+);
+
+
+INSERT INTO tagja(szemelyi_szam , csapat_kod) VALUES 
+	('1941126055105', 1),
+	('1941126055107', 1),
+	('1941126055108', 1),
+	('1941126055109', 1),
+	('1941126055110', 1),
+	('1941126055111', 2),
+	('1941126055112', 2),
+	('1941126055113', 2),
+	('1941126055114', 2),
+	('1941126055115', 2),
+	('1941126055116', 3),
+	('1941126055117', 3),
+	('1941126055118', 3),
+	('1951103055105', 3),	
+	('1951103055106', 3);
+
+CREATE TABLE versenyek (
+	verseny_kod INT NOT NULL AUTO_INCREMENT,
+	helyszin_kod INT NOT NULL,
+
+	kezdo_datum DATE,
+	donto_datum DATE,
+
+	FOREIGN KEY (helyszin_kod)
+      	REFERENCES helyszinek(helyszin_kod),
+
+	PRIMARY KEY (verseny_kod)
+);
+
+INSERT INTO versenyek (verseny_kod, helyszin_kod, kezdo_datum, donto_datum) VALUES
+('', 1, '2018-01-03', '2018-01-06'),
+('', 2, '2018-03-01', '2018-03-05'),
+('', 3, '2019-09-01', '2018-09-05');
+
+
+CREATE TABLE resztvesz (
+	verseny_kod INT NOT NULL,
+	csapat_kod INT NOT NULL,
+
+	FOREIGN KEY (verseny_kod)
+      	REFERENCES versenyek (verseny_kod),
+
+	FOREIGN KEY (csapat_kod)
+      	REFERENCES csapatok (csapat_kod),
+
+	PRIMARY KEY (csapat_kod, verseny_kod)
+
+);
+
+INSERT INTO resztvesz () VALUES
+(1, 1),
+(1, 2),
+(2, 1),
+(2, 2),
+(2, 3),
+(3, 3);
+
+
+-- Queries
+
+SELECT csapatok.csapat_nev, managerSzemely.szemelyi_szam AS managerSZSZ, managerSzemely.szuletesi_datum AS managerSzul, managerSzemely.kor AS managerKor, managerSzemely.nev AS managerNev, szemelyek.szemelyi_szam, szemelyek.szuletesi_datum, szemelyek.kor, szemelyek.nev 
+FROM csapatok 
+JOIN tagja ON csapatok.csapat_kod = tagja.csapat_kod 
+JOIN szemelyek ON szemelyek.szemelyi_szam = tagja.szemelyi_szam
+JOIN managere ON managere.szemelyi_szam = szemelyek.szemelyi_szam
+JOIN szemelyek AS managerSzemely ON managerSzemely.szemelyi_szam = managere.szemelyi_szam
+
+
+SELECT helyszinek.helyszin_kod, resztvesz.csapat_kod AS resztvevo_csapat_kod, helyszinek.helyszin_nev, versenyek.verseny_kod, versenyek.kezdo_datum, versenyek.donto_datum 
+FROM versenyek 
+JOIN helyszinek ON versenyek.helyszin_kod = helyszinek.helyszin_kod
+JOIN resztvesz ON resztvesz.verseny_kod = versenyek.verseny_kod
